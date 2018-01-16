@@ -402,3 +402,4 @@ int buttonCheckDelay(int nextMode) {
     lightAll(0);
   }
 }
+// Like this?
