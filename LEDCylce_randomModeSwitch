@@ -45,7 +45,6 @@ void loop() {
 
   // Christmas 2017 Cycle
   LEDCrash();
-  //currentTime = millis();
   for (int p = 0; p < 2; p++) {
     if (p % 2 == 0) {
     colorWipe(strip.Color(255, 0, random(0, 200)));
@@ -57,16 +56,10 @@ void loop() {
     colorWipeBackwards(strip.Color(random(0, 200), 255, 0));
     }
     }
-  //currentTime = millis();
   theaterChase(strip.Color(255, 0, 0), strip.Color(0, 255, 0));
-  //currentTime = millis();
   rainbowStack();
-  //currentTime = millis();
   pongBuild();
-  //currentTime = millis();
   rainbowCycle();
-  //currentTime = millis();
-
 }
 
 // First if statement concerning mode exists to lock in a function until the button is pressed, or mode is otherwise
