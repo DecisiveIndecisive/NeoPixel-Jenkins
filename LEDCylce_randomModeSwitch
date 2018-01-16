@@ -12,12 +12,10 @@ const int buttonDelay = 150;
 // Define changing variables
 unsigned long previousMillis = 0;       // snapshot of time at the beginning of delay function
 unsigned long lastDebounceTime = 0;     // time of last button press
-int speedKnob = 0;                      // potentiometer dictating the delay time
 int buttonState = 0;                    // whether button is HIGH or LOW
-int mode = 4;                           // the LED mode (currently 6 available)
+int mode = 0;                           // the LED mode (currently 6 available)
 int x = 0;                              // used to change between colors in mode 1 and 2
-int counter = 0;                        //
-int rainbowCounter = 0;
+int counter = 0;                        // general counter
 uint32_t currentTime = 0;
 uint32_t milliseconds = 0;
 
@@ -44,18 +42,9 @@ void setup() {
 
 void loop() {
   uint32_t currentTime = millis();
-  // Output the time of last button press, current time and the current mode
-  Serial.print("Last DebounceTime: ");
-  Serial.print(lastDebounceTime);
-  Serial.print("  Current time: ");
-  Serial.print(millis());
-  Serial.print("  mode: ");
-  Serial.println(mode);
-
 
   // Christmas 2017 Cycle
   LEDCrash();
-  //currentTime = millis();
   for (int p = 0; p < 2; p++) {
     if (p % 2 == 0) {
     colorWipe(strip.Color(255, 0, random(0, 200)));
@@ -67,132 +56,54 @@ void loop() {
     colorWipeBackwards(strip.Color(random(0, 200), 255, 0));
     }
     }
-  //currentTime = millis();
   theaterChase(strip.Color(255, 0, 0), strip.Color(0, 255, 0));
-  //currentTime = millis();
   rainbowStack();
-  //currentTime = millis();
   pongBuild();
-  //currentTime = millis();
   rainbowCycle();
-  //currentTime = millis();
-
-  /* for (int p = 0; p < 2; p++) {
-    if (p % 2 == 0) {
-    colorWipe(strip.Color(255, 0, random(0, 200)));
-    colorWipeBackwards(strip.Color(0, random(0, 200), 255));
-    colorWipe(strip.Color(random(0, 200), 255, 0));
-    } else {
-    colorWipeBackwards(strip.Color(255, 0, random(0, 200)));
-    colorWipe(strip.Color(0, random(0, 200), 255));
-    colorWipeBackwards(strip.Color(random(0, 200), 255, 0));
-    }
-    }
-    theaterChase(strip.Color(255, 0, 0), strip.Color(0, 255, 0));
-    rainbowStack();
-    rainbowStackBackwards();
-    pongBuild();
-    rainbowCycle();*/
-
-  /*while (millis() - startTime < 11500) {
-    LEDCrash();
-    Serial.println(millis()-startTime);
-    }
-    lightAll(0);
-    mode++;
-    while (millis() - startTime < 46000) {
-    for (int p = 0; p < 2; p++) {
-      if (p % 2 == 0) {
-        colorWipe(strip.Color(255, 0, random(0, 200)));
-        colorWipeBackwards(strip.Color(0, random(0, 200), 255));
-        colorWipe(strip.Color(random(0, 200), 255, 0));
-    Serial.println(millis()-startTime);
-      } else {
-        colorWipeBackwards(strip.Color(255, 0, random(0, 200)));
-        colorWipe(strip.Color(0, random(0, 200), 255));
-        colorWipeBackwards(strip.Color(random(0, 200), 255, 0));
-    Serial.println(millis()-startTime);
-      }
-    }
-    }
-    mode++;
-    while ( millis() - startTime < 69000) {
-    theaterChase(strip.Color(255, 0, 0), strip.Color(0, 255, 0));
-    Serial.println(millis()-startTime);
-    }
-    mode++;
-    while (millis() - startTime < 112000) {
-    rainbowStack();
-    //rainbowStackBackwards();
-    Serial.println(millis()-startTime);
-    }
-
-    while (millis() - startTime < 160000) {
-    pongBuild();
-    Serial.println(millis()-startTime);
-    }
-    mode = 2;
-    while ( millis() - startTime < 173600) {
-    theaterChase(strip.Color(255, 0, 0), strip.Color(0, 255, 0));
-    Serial.println(millis()-startTime);
-    }
-    mode = 5;
-    while (millis() - startTime < 263000) {
-    rainbowCycle();
-    Serial.println(millis()-startTime);
-    }
-    lightAll(0);
-    mode = 0;*/
-
 }
 
-// First if statement concerning mode exists to lock in a function until the button is pressed. The second
-// if statement exists in the event of two or more rapid button presses
+// First if statement concerning mode exists to lock in a function until the button is pressed, or mode is otherwise
+// changed. The second if statement exists in the event of two or more rapid button presses.
 
-// 3 pixels fire from both ends of the strip, collide in the middle and fire back towards the ends at
-// increased speed
+// 3 pixels fire from both ends of the strip, collide in the middle and fire back towards the ends at increased speed
 void LEDCrash() {
   if (mode == 0 && ((millis() - lastDebounceTime) > buttonDelay)) {
 
     for (int i = -3; i <= (N_LEDS / 2) + 1; i++) {       // loop of white pixels moving forward
       if (mode == 0) {
-        //speedKnob = map(analogRead(A0), 0, 1023, 20, 500);
         speedKnob = 20;
-
         buttonState = digitalRead(buttonPin);
 
         // change pixels starting at the front and back to white
         strip.setPixelColor(i, 255, 255, 255);
         strip.setPixelColor(N_LEDS - i - 1, 255, 255, 255);
 
-        if (i >= 0) {     // once the first white pixels have fired
+        if (i >= 0) {     // once the first 3 white pixels have fired
 
           if (x == 0) {         // change all pixels behind white pixels to red
             strip.setPixelColor(i - 3 , 255, 0, 0);
             strip.setPixelColor(N_LEDS - i + 2, 255, 0, 0);
-            if (i > (N_LEDS / 2) + 1) {
+            if (i > (N_LEDS / 2) + 1) {       // once complete, move to the next color
               x = 1;
             }
 
           } else if (x == 1) {  // change all pixels behind white pixels to blue
             strip.setPixelColor(i - 3, 0, 0, 255);
             strip.setPixelColor(N_LEDS - i + 3, 0, 0, 255);
-            if (i > (N_LEDS / 2) + 1) {
+            if (i > (N_LEDS / 2) + 1) {       // once complete, move to the next color
               x = 2;
             }
 
           } else if (x == 2) {  // change all pixels behind white pixels to green
             strip.setPixelColor(i - 3, 0, 255, 0);
             strip.setPixelColor(N_LEDS - i + 3, 0, 255, 0);
-            if (i > (N_LEDS / 2) + 1) {
+            if (i > (N_LEDS / 2) + 1) {       // once complete, move to the next color
               x = 0;
             }
           }
         }
 
         strip.show();
-        //Serial.println("forwardLED: ");
-        //Serial.println(millis()-currentTime);
         buttonCheckDelay(1);
       }
     }
@@ -200,9 +111,7 @@ void LEDCrash() {
 
     for (int j = (N_LEDS / 2); j >= -2; j--) {    // loop of white pixels moving backwards
       if (mode == 0) {
-        //speedKnob = map(analogRead(A0), 0, 1023, 20, 500);
         speedKnob = 2;
-
         buttonState = digitalRead(buttonPin);
 
         // change pixels starting from the middle to white
@@ -214,28 +123,27 @@ void LEDCrash() {
           if (x == 0) {           // change all pixels behind white pixels to green
             strip.setPixelColor(j + 3 , 0, 255, 0 );
             strip.setPixelColor(N_LEDS - j - 3, 0, 255, 0);
-            if (j == -2) {
+            if (j == -2) {        // once complete, move to the next color
               x = 1;
             }
 
           } else if (x == 1) {    // change all pixels behind white pixels to red
             strip.setPixelColor(j + 3, 255, 0, 0);
             strip.setPixelColor(N_LEDS - j - 3, 255, 0, 0);
-            if (j == -2) {
+            if (j == -2) {        // once complete, move to the next color
               x = 2;
             }
 
           } else if (x == 2) {    // change all pixels behind white pixels to blue
             strip.setPixelColor(j + 3, 0, 0, 255);
             strip.setPixelColor(N_LEDS - j - 3, 0, 0, 255);
-            if (j == -2) {
+            if (j == -2) {        // once complete, move to the next color
               x = 0;
             }
           }
         }
 
         strip.show();
-
         buttonCheckDelay(1);
       }
     }
@@ -243,22 +151,19 @@ void LEDCrash() {
   }
 }
 
-// Fires one input color from one the data end to the other end
+// Fires one input color from the data end to the other end
 void colorWipe(uint32_t c) {
   if (mode == 1 && ((millis() - lastDebounceTime) > buttonDelay)) {
 
     for (int i = 0; i < strip.numPixels(); i++) {     // loop changing the colors forwards
       if (mode == 1) {
-        //speedKnob = map(analogRead(A0), 0, 1023, 5, 500);
         speedKnob = 5;
 
         // set the current pixel to the input color
         strip.setPixelColor(i, c);
+        
         strip.show();
-
         buttonCheckDelay(2);
-        //Serial.println("ColorWipe: ");
-        //Serial.println(millis()-currentTime);
       }
     }
     timer(45000);
@@ -270,20 +175,20 @@ void colorWipe(uint32_t c) {
 void colorWipeBackwards(uint32_t c) {
   if (mode == 1 && ((millis() - lastDebounceTime) > buttonDelay)) {
 
-    for (uint16_t i = strip.numPixels(); i > 0; i--) {    // loop changing the colors backwards
+    for (i = strip.numPixels(); i > 0; i--) {    // loop changing the colors backwards
       if (mode == 1) {
-        //        speedKnob = map(analogRead(A0), 0, 1023, 5, 500);
         speedKnob = 5;
 
         // set the current pixel to the input color
         strip.setPixelColor(i, c);
+        
         strip.show();
-
         buttonCheckDelay(2);
       }
     }
   }
 }
+
 
 // Alternating colors crawling in a repeated fixed length along the strip
 void theaterChase(uint32_t c1, uint32_t c2) {
@@ -291,7 +196,6 @@ void theaterChase(uint32_t c1, uint32_t c2) {
 
     for (int q = 0; q < 3; q++) {   // loop through the length of chasing element
       if (mode == 2) {
-        //        speedKnob = map(analogRead(A0), 0, 1023, 50, 250);
         speedKnob = 65;
 
         // loop through the entire strip and change every 3rd pixel
@@ -306,7 +210,6 @@ void theaterChase(uint32_t c1, uint32_t c2) {
         }
 
         strip.show();
-
         buttonCheckDelay(3);
 
         for (int i = 0; i < strip.numPixels(); i = i + 3) {
@@ -318,21 +221,21 @@ void theaterChase(uint32_t c1, uint32_t c2) {
   }
 }
 
+
 // Fire out groups of three pixels (3 dead pixels apart) that stop when it reaches
 // the previous pixels. The color of the pixels rainbow as they fire out, and maintain
 // their color at the end. Once the strip is full, white bunch clears the strip.
 void rainbowStack() {
   if (mode == 3 && ((millis() - lastDebounceTime) > buttonDelay)) {
     int decrease = 0;
-    uint32_t lightArray[240] = {};
+    uint32_t lightArray[240] = {};      // array of 240 elements
+    
     for (int j = 0; j < 256; j = j + 2) {   // loop for the color wheel
       if (mode == 3 ) {
-        //speedKnob = map(analogRead(A0), 0, 1023, 5, 1500);
         speedKnob = 5;
 
-        for (int i = 0; i <= strip.numPixels() - decrease; i++) {   // loop through the strip of dead pixels
+        for (int i = 0; i <= strip.numPixels() - decrease; i++) {   // loop through the remaining strip of dead pixels
           if (mode == 3) {
-            //speedKnob = map(analogRead(A0), 0, 1023, 5, 1500);
             speedKnob = 5;
             buttonState = digitalRead(buttonPin);
 
@@ -342,7 +245,6 @@ void rainbowStack() {
             strip.setPixelColor(i - 3, 0, 0, 0);
 
             strip.show();
-
             buttonCheckDelay(4);
           }
         }
@@ -351,11 +253,11 @@ void rainbowStack() {
           // decrease the strip loop length to maintain pixels at the end
           if (decrease <= strip.numPixels() - 6) {
             decrease += 6;
-            //Serial.println(decrease);
           }
           // once the strip is full, reset decrease, fire a white group, then clear
           else {
             decrease = 0;
+            
             for (int i = 0; i <= strip.numPixels(); i++) {
               if (mode == 3) {
                 strip.setPixelColor(i, 255, 255, 255);
@@ -365,68 +267,8 @@ void rainbowStack() {
                 buttonCheckDelay(4);
               }
             }
-            rainbowCounter++;
             lightAll(0);    
-            timer(45000);
-            Serial.println(rainbowCounter);
-            /*if (rainbowCounter%3 == 0) {
-              Serial.println(rainbowCounter);
-              mode = 4;
-            }*/
-            
-          }
-        }
-        buttonCheckDelay(4);
-      }
-    }
-  }
-}
-
-
-void rainbowStackBackwards() {
-  if (mode == 3 && ((millis() - lastDebounceTime) > buttonDelay)) {
-    int decrease = 0;
-    for (int j = 0; j < 256; j = j + 2) {   // loop for the color wheel
-      if (mode == 3 ) {
-        //speedKnob = map(analogRead(A0), 0, 1023, 5, 1500);
-        speedKnob = 5;
-        for (int i = strip.numPixels(); i >= 0 + decrease; i--) {   // loop through the strip of dead pixels
-          if (mode == 3) {
-            speedKnob = map(analogRead(A0), 0, 1023, 2, 1500);
-            buttonState = digitalRead(buttonPin);
-            //Serial.println(i);
-
-
-            // move through the color wheel as the group fires out, erasing pixels behind it
-            strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
-            //            strip.setPixelColor(i + 3, lightArray[i + 3]);
-
-            strip.show();
-
-            buttonCheckDelay(4);
-          }
-        }
-
-        if (mode == 3) {
-          // decrease the strip loop length to maintain pixels at the end
-          if (strip.numPixels() - 6 > decrease) {
-            decrease += 6;
-            Serial.println(decrease);
-          }
-          // once the strip is full, reset decrease, fire a white group, then clear
-          else {
-            decrease = 0;
-            for (int i = strip.numPixels(); i >= 0; i--) {
-              Serial.println("Test");
-              if (mode == 3) {
-                strip.setPixelColor(i, 255, 255, 255);
-                strip.setPixelColor(i + 3, 0, 0, 0);
-
-                strip.show();
-                buttonCheckDelay(4);
-              }
-            }
-            lightAll(0);
+            timer(45000);            
           }
         }
         buttonCheckDelay(4);
@@ -441,16 +283,16 @@ void rainbowStackBackwards() {
 // it reverses direction.
 void pongBuild() {
   if (mode == 4 && ((millis() - lastDebounceTime) > buttonDelay)) {
+  
     for (int i = counter; i <= strip.numPixels() - 1; i++) { // loop through the strip of dead pixels
       if (mode == 4) {
-        //speedKnob = map(analogRead(A0), 0, 1023, 2, 200);
         speedKnob = 2;
         strip.setPixelColor(i, 0, 215, 0);
         strip.setPixelColor(i - counter - 1, 255, 0, 0);
 
         strip.show();
-
         buttonCheckDelay(5);
+        
         if (mode == 5) {
           counter = 0;
         }
@@ -458,14 +300,13 @@ void pongBuild() {
         if (i >= strip.numPixels() - 1) {
           for (int j = strip.numPixels() - counter + 1; j >= 0; j--) {
             if (mode == 4) {
-              //speedKnob = map(analogRead(A0), 0, 1023, 2, 200)=;
               speedKnob = 2;
               strip.setPixelColor(j, 0, 215, 0);
               strip.setPixelColor(j + counter + 2, 255, 0, 0);
 
               strip.show();
-
               buttonCheckDelay(5);
+              
               if (mode == 5) {
                 counter = 0;
               }
@@ -474,7 +315,6 @@ void pongBuild() {
           counter += 2;
         }
       }
-      //Serial.println(counter);
       if (counter == strip.numPixels()) {
         mode = 2;
         counter = 0;
@@ -487,24 +327,23 @@ void pongBuild() {
 
 // Cycle through the rainbow throughout the entire strip.
 void rainbowCycle() {
-  //Serial.println("Cycle");
   if (mode == 5 && ((millis() - lastDebounceTime) > buttonDelay)) {
+  
     for (int j = 0; j < 256; j++) {
-      //int speedKnob = map(analogRead(A0), 0, 1023, 40, 20);
-      int speedKnob = 20;
       if (mode == 5) {
+        speedKnob = 20;
         for (int i = 0; i < strip.numPixels(); i++) {
           strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
           timer(45000);
         }
 
         strip.show();
-
         buttonCheckDelay(0);
       }
     }
   }
 }
+
 
 // Light every pixel a certain color at once.
 void lightAll(uint32_t c) {
@@ -514,15 +353,18 @@ void lightAll(uint32_t c) {
   strip.show();
 }
 
+
+// Used to change to a random mode after a specified amount of milliseconds
 void timer(uint32_t milliseconds) {
   if (millis() - currentTime > milliseconds) {
     mode = random(0, 6);
     currentTime = millis();
-    if (mode != 4) {
+    if (mode != 4) {        // Unless new mode is ping pong, clear the LED strip
     lightAll(0);
     }
   }
 }
+
 
 // Input a value 0 to 255 to get a color value.
 // The colours are a transition r - g - b - back to r.
@@ -538,6 +380,7 @@ uint32_t Wheel(byte WheelPos) {
   WheelPos -= 170;
   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
+
 
 // Delay the function by speedKnob milliseconds and check if the button is being pressed
 int buttonCheckDelay(int nextMode) {
@@ -557,6 +400,5 @@ int buttonCheckDelay(int nextMode) {
     mode = nextMode;                   // go to next mode, and clear all pixels
     lastDebounceTime = millis();
     lightAll(0);
-
   }
 }
