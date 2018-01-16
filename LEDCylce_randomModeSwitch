@@ -1,4 +1,4 @@
-// Include NeoPixel library
+// Include NeoPixel library!
 #include <Adafruit_NeoPixel.h>
 
 // Define the PIN the strip is connected to, and the # of LEDs
